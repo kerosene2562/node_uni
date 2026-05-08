@@ -5,8 +5,6 @@ import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
-const brokenType: number = "this is not a number";
-
 app.get("/health", (_req, res) => {
   const isMongoConnected = mongoose.connection.readyState === 1;
 
