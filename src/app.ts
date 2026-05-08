@@ -6,9 +6,11 @@ import { errorHandler } from "./middleware/errorHandler";
 const app = express();
 
 app.get("/health", (_req, res) => {
-  return res.status(503).json({
-    status: "error",
-    mongodb: "forced healthcheck failure",
+  const isMongoConnected = mongoose.connection.readyState === 1;
+
+  return res.status(isMongoConnected ? 200 : 503).json({
+    status: isMongoConnected ? "ok" : "error",
+    mongodb: isMongoConnected ? "connected" : "disconnected",
     readyState: mongoose.connection.readyState,
   });
 });
