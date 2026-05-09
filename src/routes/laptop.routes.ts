@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
+import { requireAuth } from "../middleware/auth";
 
 import {
   getAllLaptops,
@@ -18,6 +19,10 @@ import {
 import { validate } from "../middleware/validate";
 
 const router = Router();
+
+const checkOwner = (ownerId: unknown, userId?: string): boolean => {
+  return String(ownerId) === String(userId);
+};
 
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -92,53 +97,75 @@ router.get("/:id", async (req: Request<{ id: string }>, res: Response, next: Nex
   }
 });
 
-router.post("/", validate(createLaptopSchema), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const laptop = await createLaptop(req.body);
-    return res.status(201).json(laptop);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.patch(
-  "/:id",
-  validate(updateLaptopSchema),
-  async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+router.post(
+  "/",
+  requireAuth,
+  validate(createLaptopSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!isValidObjectId(req.params.id)) {
-        return res.status(400).json({ message: "Invalid laptop id format" });
-      }
-
-      const updatedLaptop = await updateLaptop(req.params.id, req.body);
-
-      if (!updatedLaptop) {
-        return res.status(404).json({ message: "Laptop not found" });
-      }
-
-      return res.status(200).json(updatedLaptop);
+      const laptop = await createLaptop(req.body, req.userId as string);
+      return res.status(201).json(laptop);
     } catch (error) {
       next(error);
     }
   }
 );
 
-router.delete("/:id", async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+const updateLaptopHandler = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: "Invalid laptop id format" });
     }
 
-    const deletedLaptop = await deleteLaptop(req.params.id);
+    const laptop = await getLaptopById(req.params.id);
 
-    if (!deletedLaptop) {
+    if (!laptop) {
       return res.status(404).json({ message: "Laptop not found" });
     }
 
-    return res.status(204).send();
+    if (!checkOwner(laptop.ownerId, req.userId)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const updatedLaptop = await updateLaptop(req.params.id, req.body);
+    return res.status(200).json(updatedLaptop);
   } catch (error) {
     next(error);
   }
-});
+};
+
+router.patch("/:id", requireAuth, validate(updateLaptopSchema), updateLaptopHandler);
+router.put("/:id", requireAuth, validate(updateLaptopSchema), updateLaptopHandler);
+
+router.delete(
+  "/:id",
+  requireAuth,
+  async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      if (!isValidObjectId(req.params.id)) {
+        return res.status(400).json({ message: "Invalid laptop id format" });
+      }
+
+      const laptop = await getLaptopById(req.params.id);
+
+      if (!laptop) {
+        return res.status(404).json({ message: "Laptop not found" });
+      }
+
+      if (!checkOwner(laptop.ownerId, req.userId)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      await deleteLaptop(req.params.id);
+      return res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default router;

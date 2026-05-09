@@ -1,5 +1,8 @@
 import { connectTestDB, disconnectTestDB, clearTestDB } from "./setup";
 import { LaptopModel } from "../src/models/laptop.model";
+import { Types } from "mongoose";
+
+const createOwnerId = () => new Types.ObjectId();
 
 describe("Laptop model", () => {
   beforeAll(async () => {
@@ -24,6 +27,7 @@ describe("Laptop model", () => {
         cpu: "Apple M2",
         gpu: "Apple 10-core GPU",
         releaseDate: new Date("2022-07-15"),
+        ownerId: createOwnerId(),
       });
 
       expect(laptop._id).toBeDefined();
@@ -40,6 +44,7 @@ describe("Laptop model", () => {
         cpu: "Intel Core i7",
         gpu: "Intel Iris Xe",
         releaseDate: new Date("2023-01-01"),
+        ownerId: createOwnerId(),
       });
 
       expect(laptop.description).toBe("");
@@ -54,6 +59,7 @@ describe("Laptop model", () => {
         cpu: "Intel Core i7",
         gpu: "Intel Iris Xe",
         releaseDate: new Date("2023-03-18"),
+        ownerId: createOwnerId(),
       });
 
       expect(laptop.createdAt).toBeDefined();
@@ -69,6 +75,7 @@ describe("Laptop model", () => {
         cpu: "Intel Core i7",
         gpu: "Intel Iris Xe",
         releaseDate: new Date("2023-05-10"),
+        ownerId: createOwnerId(),
       });
 
       const json = laptop.toJSON() as { fullName?: string };
@@ -84,6 +91,7 @@ describe("Laptop model", () => {
         cpu: "Apple M3",
         gpu: "Apple GPU",
         releaseDate: new Date("2023-11-07"),
+        ownerId: createOwnerId(),
       });
 
       expect(laptop.brand).toBe("Apple");
@@ -109,6 +117,7 @@ describe("Laptop model", () => {
           cpu: "Intel Core i5",
           gpu: "Intel UHD",
           releaseDate: new Date("2022-01-01"),
+          ownerId: createOwnerId(),
         })
       ).rejects.toThrow();
     });
@@ -123,6 +132,7 @@ describe("Laptop model", () => {
           cpu: "Apple M1",
           gpu: "Apple GPU",
           releaseDate: new Date("2022-01-01"),
+          ownerId: createOwnerId(),
         })
       ).rejects.toThrow();
     });
@@ -137,6 +147,7 @@ describe("Laptop model", () => {
           cpu: "Intel Core i5",
           gpu: "Intel UHD",
           releaseDate: new Date("2022-01-01"),
+          ownerId: createOwnerId(),
         })
       ).rejects.toThrow();
     });
@@ -154,6 +165,7 @@ describe("Laptop model", () => {
           cpu: "Intel Core i5",
           gpu: "Intel UHD",
           releaseDate: futureDate,
+          ownerId: createOwnerId(),
         })
       ).rejects.toThrow();
     });

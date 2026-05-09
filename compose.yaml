@@ -26,6 +26,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      JWT_SECRET: local_docker_secret_change_me
       NODE_ENV: production
       PORT: 3000
       MONGODB_URI: mongodb://root:rootpassword@mongo:27017/laptopdb?authSource=admin

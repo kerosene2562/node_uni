@@ -1,6 +1,7 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 export interface Laptop {
+  ownerId: Types.ObjectId;
   brand: string;
   name: string;
   description?: string;
@@ -15,6 +16,12 @@ export interface Laptop {
 
 const laptopSchema = new Schema<Laptop>(
   {
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Owner is required"],
+      index: true,
+    },
     brand: {
       type: String,
       required: [true, "Brand is required"],

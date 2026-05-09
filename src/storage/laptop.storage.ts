@@ -1,5 +1,6 @@
 import { CreateLaptopDTO, UpdateLaptopDTO } from "../schemas/laptop.schema";
 import { LaptopModel } from "../models/laptop.model";
+import { Types } from "mongoose";
 
 type LaptopFilters = {
   brand?: string;
@@ -74,16 +75,20 @@ export const getLaptopById = async (id: string) => {
   return LaptopModel.findById(id);
 };
 
-export const createLaptop = async (data: CreateLaptopDTO) => {
+export const createLaptop = async (data: CreateLaptopDTO, ownerId: string) => {
   const cleanData = removeUndefinedFields(data);
-  return LaptopModel.create(cleanData);
+
+  return LaptopModel.create({
+    ...cleanData,
+    ownerId: new Types.ObjectId(ownerId),
+  });
 };
 
 export const updateLaptop = async (id: string, data: UpdateLaptopDTO) => {
   const cleanData = removeUndefinedFields(data);
 
   return LaptopModel.findByIdAndUpdate(id, cleanData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };
